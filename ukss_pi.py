@@ -17,12 +17,12 @@ nltk.download('averaged_perceptron_tagger')  # For POS tagging
 from nltk.corpus import wordnet
 from nltk import pos_tag
 from concurrent.futures import ThreadPoolExecutor
-from typing import Callable, Any
+from typing import Callable, Any, List
 import time
 
 
 class UKSS_PI:
-    def __inti__(self,text):
+    def __init__(self,text):
         self.text = text
         self.words = self.__preprocess(text)
         
@@ -79,7 +79,7 @@ class UKSS_PI:
                 dict_[word] = 1
         return dict_
     
-    def __term_frequency(self,text):
+    def __term_frequency(self):
         """Computes the term frequency of each word in a given string.
 
         Args:
@@ -88,7 +88,7 @@ class UKSS_PI:
         Returns:
             A dictionary mapping each word to its term frequency.
         """
-        text = self.__preprocess(text)
+        text = self.words
         words_count = len(text)
         text_dict = self.__sentence_dictnator(text)
         for word in text_dict:
@@ -122,7 +122,7 @@ class UKSS_PI:
         return graph
     
     
-    def __extract_keywords(   self,text: str,
+    def __extract_keywords(   self,
                         num_keywords: int = 5,
                         damping: float = 0.85,
                         max_iter: int = 100,
@@ -131,7 +131,6 @@ class UKSS_PI:
         Extract keywords from text and return them with their scores.
 
         Args:
-            text: Input text
             num_keywords: Number of top keywords to return
             damping: Damping factor for PageRank
             max_iter: Maximum iterations for PageRank
@@ -141,7 +140,7 @@ class UKSS_PI:
             Either a dictionary of {word: score} or a list of words, depending on return_scores
         """
         # Preprocess text
-        words = self.__preprocess(text)
+        words = self.words
 
         # Build graph
         graph = self.__build_graph(words)
@@ -161,7 +160,7 @@ class UKSS_PI:
             return [word for word, _ in sorted_words[:num_keywords]]
         
         
-    def __get_word_rankings(self, text: str) -> List[Tuple[str, float]]:
+    def __get_word_rankings(self) -> List[Tuple[str, float]]:
         """
         Get all words with their scores, sorted by importance.
 
@@ -171,7 +170,7 @@ class UKSS_PI:
         Returns:
             List of tuples (word, score) sorted by score in descending order
         """
-        words = self.__preprocess(text)
+        words = self.words
         graph = self.__build_graph(words)
         scores = nx.pagerank(graph)
         return sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -196,17 +195,16 @@ class UKSS_PI:
 
         return combined_scores
     
-    def __keyword_extraction_t_g(self,text):
-        tf_scores = self.__term_frequency(text)
+    def __keyword_extraction_t_g(self):
+        tf_scores = self.__term_frequency()
         keywords_with_scores = self.__extract_keywords(
-                text,
                 num_keywords=10,
                 return_scores=True
             )
         combined_scores = self.__combine_scores(tf_scores=tf_scores, graph_scores=keywords_with_scores)
         return combined_scores
     
-    def __SegmentWordScore(self,txt, num_segments=10):
+    def __SegmentWordScore(self, num_segments=10):
         # # Split the text into words
         # txt = txt.lower()
         # # Remove HTML tags
@@ -221,7 +219,7 @@ class UKSS_PI:
         # Remove words less than three letters
         # words = [word for word in txt if len(word) >= 3]
 
-        words = self.__preprocess(txt)
+        words = self.words
 
         # Calculate segment size
         total_words = len(words)
@@ -268,15 +266,15 @@ class UKSS_PI:
 
         return log_DP
     
-    def __GetDispersonScore(self,text):
-        segments = self.__SegmentWordScore(txt=text)
+    def __GetDispersonScore(self,):
+        segments = self.__SegmentWordScore()
         for key,values in segments.items():
             segments[key] = abs(self.__gries_dp_log(values))
 
 
         return segments
     
-    def run_concurrent_calculations(
+    def __run_concurrent_calculations(
     text: Any,
     func1: Callable,
     func2: Callable,
@@ -307,14 +305,14 @@ class UKSS_PI:
             
             return [result1, result2, result3]
     
-    def keyword_extraction_t_g_d(self, text):
-        # results = []
-        '''
+    def keyword_extraction_t_g_d(self,):
+        results = []
+        
         with ThreadPoolExecutor(max_workers=3) as executor:
             # Submit functions to be executed in parallel
-            future1 = executor.submit(self.term_frequency, text)
-            future2 = executor.submit(self.extract_keywords, text, num_keywords=10, return_scores=True)
-            future3 = executor.submit(self.GetDispersonScore, text)
+            future1 = executor.submit(self.__term_frequency)
+            future2 = executor.submit(self.__extract_keywords, num_keywords=10, return_scores=True)
+            future3 = executor.submit(self.__GetDispersonScore,)
 
             # Wait for functions to complete and gather their results
             result1 = future1.result()
@@ -324,8 +322,8 @@ class UKSS_PI:
             results.append(result1)  # tf_scores
             results.append(result2)  # graph_scores
             results.append(result3)  # dispersion_score
-        '''
-        results = [self.__term_frequency(text), self.__extract_keywords(text, num_keywords=10, return_scores=True), self.__GetDispersonScore(text)]
+        
+        # results = [self.__term_frequency(), self.__extract_keywords( num_keywords=10, return_scores=True), self.__GetDispersonScore()]
 
         # Use results to calculate combined keyword scores and adjust with dispersion score
         keywords = self.__combine_scores(tf_scores=results[0], graph_scores=results[1])
@@ -338,17 +336,11 @@ class UKSS_PI:
         return keywords
 
         
-    def get_keywords(self,text):
-        keywords = self.keyword_extraction_t_g_d(text)
+    def get_keywords(self):
+        keywords = self.keyword_extraction_t_g_d()
         for word, score in keywords.items():
             if score != 0:
                 print(f"{word}: {score}")
                 
                 
-                
-kss = UKSS_PI()
-text = '''
-The gym is a dedicated space for individuals to enhance their physical fitness, mental well-being, and personal health. Gyms offer a variety of equipment and facilities designed to cater to a wide range of fitness goals, from weightlifting and strength training to cardiovascular and flexibility exercises. Common equipment includes free weights, resistance machines, treadmills, rowing machines, and stationary bikes. Many gyms also feature open areas for stretching, functional training, and group exercise classes like yoga, Pilates, Zumba, and spin, making it accessible for people of all fitness levels and preferences. Working out at the gym provides numerous benefits beyond the physical. Regular exercise helps reduce stress by releasing endorphins, the body's natural mood enhancers, which improve emotional health and mental clarity. A routine gym visit fosters a sense of discipline and consistency, helping individuals build better habits over time. Additionally, the gym environment can be highly motivating, as it brings together people with similar goals, creating a sense of community and encouragement. Trainers and fitness professionals at the gym are often available to provide guidance, correct form, and develop personalized workout plans, making the gym experience safer and more effective. For many, the gym becomes a haven, a place where they can focus on themselves, escape daily pressures, and achieve gradual, measurable progress in their fitness journeys.
-'''
-
-kss.get_keywords(text)
+   
