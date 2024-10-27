@@ -274,7 +274,7 @@ class UKSS_PI:
 
         return segments
     
-    def run_concurrent_calculations(
+    def __run_concurrent_calculations(
     text: Any,
     func1: Callable,
     func2: Callable,
@@ -306,13 +306,13 @@ class UKSS_PI:
             return [result1, result2, result3]
     
     def keyword_extraction_t_g_d(self,):
-        # results = []
-        '''
+        results = []
+        
         with ThreadPoolExecutor(max_workers=3) as executor:
             # Submit functions to be executed in parallel
-            future1 = executor.submit(self.term_frequency, text)
-            future2 = executor.submit(self.extract_keywords, text, num_keywords=10, return_scores=True)
-            future3 = executor.submit(self.GetDispersonScore, text)
+            future1 = executor.submit(self.__term_frequency)
+            future2 = executor.submit(self.__extract_keywords, num_keywords=10, return_scores=True)
+            future3 = executor.submit(self.__GetDispersonScore,)
 
             # Wait for functions to complete and gather their results
             result1 = future1.result()
@@ -322,8 +322,8 @@ class UKSS_PI:
             results.append(result1)  # tf_scores
             results.append(result2)  # graph_scores
             results.append(result3)  # dispersion_score
-        '''
-        results = [self.__term_frequency(), self.__extract_keywords( num_keywords=10, return_scores=True), self.__GetDispersonScore()]
+        
+        # results = [self.__term_frequency(), self.__extract_keywords( num_keywords=10, return_scores=True), self.__GetDispersonScore()]
 
         # Use results to calculate combined keyword scores and adjust with dispersion score
         keywords = self.__combine_scores(tf_scores=results[0], graph_scores=results[1])
@@ -344,11 +344,3 @@ class UKSS_PI:
                 
                 
    
-   
-text = '''
-The gym is a dedicated space for individuals to enhance their physical fitness, mental well-being, and personal health. Gyms offer a variety of equipment and facilities designed to cater to a wide range of fitness goals, from weightlifting and strength training to cardiovascular and flexibility exercises. Common equipment includes free weights, resistance machines, treadmills, rowing machines, and stationary bikes. Many gyms also feature open areas for stretching, functional training, and group exercise classes like yoga, Pilates, Zumba, and spin, making it accessible for people of all fitness levels and preferences. Working out at the gym provides numerous benefits beyond the physical. Regular exercise helps reduce stress by releasing endorphins, the body's natural mood enhancers, which improve emotional health and mental clarity. A routine gym visit fosters a sense of discipline and consistency, helping individuals build better habits over time. Additionally, the gym environment can be highly motivating, as it brings together people with similar goals, creating a sense of community and encouragement. Trainers and fitness professionals at the gym are often available to provide guidance, correct form, and develop personalized workout plans, making the gym experience safer and more effective. For many, the gym becomes a haven, a place where they can focus on themselves, escape daily pressures, and achieve gradual, measurable progress in their fitness journeys.
-'''             
-kss = UKSS_PI(text)
-
-
-kss.get_keywords()
