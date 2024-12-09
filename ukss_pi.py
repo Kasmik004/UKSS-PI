@@ -57,8 +57,8 @@ class UKSS_PI:
 
     def __preprocess(self, txt):
         txt = txt.lower()
-        txt = re.sub(r"<.*?>", " ", txt)
-        txt = re.sub(r"[^a-zA-Z]", " ", txt)
+        txt = re.sub(r"<.*?>", " ", txt)  # remove HTML tags
+        txt = re.sub(r"[^a-zA-Z]", " ", txt)  # remove special characters and digits
         txt = self.__lemmatize_with_pos(txt)
         txt = nltk.word_tokenize(txt)
         txt = [word for word in txt if word not in stop_words]  # remove stopwords
@@ -334,6 +334,16 @@ class UKSS_PI:
 
     def get_keywords(self):
         keywords = self.keyword_extraction_t_g_d()
+        tags = {}
         for word, score in keywords.items():
             if score != 0:
-                print(f"{word}: {score}")
+                # print(f"{word}: {score}")
+                tags[word] = score
+
+        sorted_tags = sorted(tags.items(), key=lambda item: item[1], reverse=True)
+        words = [word for word, _ in sorted_tags[:3]]
+        return words
+
+    def get_keyword_list(self):
+        keywords = self.keyword_extraction_t_g_d()
+        return keywords

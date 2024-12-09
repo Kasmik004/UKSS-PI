@@ -3,7 +3,8 @@ from ukss_pi import UKSS_PI
 
 def test(txt):
     kss = UKSS_PI(text=txt)
-    kss.get_keywords()
+    tags = kss.get_keywords()
+    return tags
 
 
 # txt = """
@@ -21,4 +22,6 @@ txt = """
 Creating a web app using Flask is an exciting journey for anyone interested in web development. Flask is a lightweight Python framework that is both beginner-friendly and highly versatile, making it a popular choice among developers. Whether you're building a small personal project or a robust application, Flask provides the tools you need. The first step in creating a Flask web app is to install Flask on your system. Before diving into the development process, ensure that Python is installed, as Flask is built on Python. Once Flask is installed, you can start setting up your project. This involves creating a new project directory and organizing it to include folders for templates, static files like CSS and JavaScript, and your main application file. Flask uses the concept of routes to define how users interact with your application. Routes map specific URLs to functions in your application. For instance, you can create a homepage by defining a route that displays a simple welcome message. Templates come into play here, allowing you to create HTML files that Flask renders dynamically, ensuring your app has a clean and professional look. Another key aspect of Flask development is handling user inputs. Forms can be created to capture data from users, which Flask processes to perform tasks like saving data to a database or updating information. Flask seamlessly integrates with databases like SQLite, making it easy to manage and store data. Testing is a crucial part of the development process. Flask’s built-in server lets you run your application locally and see how it works in a browser. This allows you to experiment and refine your app before deploying it. When your app is complete and ready to share, Flask applications can be deployed to hosting platforms like Heroku, AWS, or Google Cloud. Deployment ensures your web app is accessible to users around the globe. In summary, creating a web app using Flask involves setting up your project, defining routes, integrating templates, handling user inputs, and deploying the application. With its simplicity and flexibility, Flask empowers you to bring your ideas to life and share them with the world.
 """
 
-test(txt=txt)
+tags = test(txt=txt)
+print("fksjfskd")
+print(tags)
