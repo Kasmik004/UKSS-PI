@@ -50,7 +50,7 @@ class UKSS_PI:
             lemmatizer.lemmatize(word, self.__get_wordnet_pos(tag))
             for word, tag in word_pos
             if tag in pos_tags
-        ]  # Lemmatize based on POS tags
+        ]  # lemmatize based on POS tags
         # removes verbs and adverbs only allows nouns and adjectives
 
         return " ".join(lemmatized_words)
@@ -94,17 +94,20 @@ class UKSS_PI:
         return text_dict
 
     def __build_graph(self, words: List[str], window_size=3) -> nx.Graph:
-        # Create graph
         graph = nx.Graph()
 
-        # Add nodes (words)
+        # Add nodes
         for word in words:
             if not graph.has_node(word):
                 graph.add_node(word)
 
-                # Add edges based on co-occurrence within window
         for i in range(len(words)):
-            for j in range(i + 1, min(i + window_size + 1, len(words))):
+            # for j in range(i + 1, min(i + window_size + 1, len(words))):
+            for j in range(
+                max(0, i - window_size), min(i + window_size + 1, len(words))
+            ):
+                if i == j:
+                    continue
                 if graph.has_edge(words[i], words[j]):
                     graph[words[i]][words[j]]["weight"] += 1
                 else:
@@ -131,20 +134,17 @@ class UKSS_PI:
         Returns:
             Either a dictionary of {word: score} or a list of words, depending on return_scores
         """
-        # Preprocess text
         words = self.words
 
-        # Build graph
         graph = self.__build_graph(words)
 
         # Apply PageRank
         scores = nx.pagerank(graph, alpha=damping, max_iter=max_iter)
 
-        # Sort words by score
         sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
         if return_scores:
-            # Return dictionary of top words with their scores
+            # Return dictionary of top(num keywords) words with their scores
             return {
                 word: round(score, 4) for word, score in sorted_words[:num_keywords]
             }
@@ -211,16 +211,15 @@ class UKSS_PI:
 
         words = self.words
 
-        # Calculate segment size
         total_words = len(words)
         segment_size = math.ceil(total_words / num_segments)
 
-        # Initialize frequency dictionary
         freq_dict = defaultdict(lambda: [0] * num_segments)
 
-        # Count frequencies in each segment
         for i, word in enumerate(words):
-            segment_idx = min(i // segment_size, num_segments - 1)
+            segment_idx = min(
+                i // segment_size, num_segments - 1
+            )  # number of segments are 10, but the index starts from 0, so the last word would give idx as 10, but the max index in dict is 9, so we find the min of the two
             freq_dict[word][segment_idx] += 1
 
         return dict(freq_dict)
@@ -229,8 +228,9 @@ class UKSS_PI:
         N = len(word_counts)
         total_occurrences = np.sum(word_counts)
 
-        # If the word never appears, return DP = epsilon (small positive value)
-        if total_occurrences == 0:
+        if (
+            total_occurrences == 0
+        ):  # if the word never appears just return epsilon (a very very small positive value)
             return epsilon
 
         # Calculate the proportion of occurrences in each section
@@ -245,16 +245,15 @@ class UKSS_PI:
         # Calculate Gries' DP
         DP = 1 - (sum_diff / (2 * (1 - uniform_prob)))
 
-        # Handle small floating-point precision issues
         DP = max(DP, epsilon)  # Avoid DP becoming less than epsilon
 
-        # Logarithmic scaling to avoid zeros when multiplying
-        log_DP = math.log(DP + epsilon)  # Add epsilon to avoid log(0)
+        # # Logarithmic scaling to avoid zeros when multiplying
 
-        # Round the DP to avoid floating-point precision issues
-        log_DP = round(log_DP, precision)
+        # log_DP = math.log(DP + epsilon)  # Add epsilon to avoid log(0)
 
-        return log_DP
+        # log_DP = round(log_DP, precision)
+
+        return DP
 
     def __GetDispersonScore(
         self,
@@ -302,7 +301,7 @@ class UKSS_PI:
         results = []
 
         with ThreadPoolExecutor(max_workers=3) as executor:
-            # Submit functions to be executed in parallel
+            # executin parallel
             future1 = executor.submit(self.__term_frequency)
             future2 = executor.submit(
                 self.__extract_keywords, num_keywords=10, return_scores=True
@@ -319,7 +318,7 @@ class UKSS_PI:
             results.append(result1)  # tf_scores
             results.append(result2)  # graph_scores
             results.append(result3)  # dispersion_score
-
+            # resuts is the list of the three dicts
         # results = [self.__term_frequency(), self.__extract_keywords( num_keywords=10, return_scores=True), self.__GetDispersonScore()]
 
         # Use results to calculate combined keyword scores and adjust with dispersion score
@@ -328,7 +327,7 @@ class UKSS_PI:
 
         for word in keywords:
             if word in dispersion_score:
-                keywords[word] = keywords[word] / dispersion_score[word]
+                keywords[word] = keywords[word] * dispersion_score[word]
 
         return keywords
 
