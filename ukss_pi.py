@@ -77,6 +77,9 @@ class UKSS_PI:
                 dict_[word] = 1
         return dict_
 
+    def __sentences_into_list(self):
+        return sent_tokenize(self.text)
+
     def __term_frequency(self):
         """Returns:
         A dictionary mapping each word to its term frequency.
@@ -331,6 +334,30 @@ class UKSS_PI:
 
         return keywords
 
+    def __get_summary(self, keywords):
+        list_of_sentences = self.__sentences_into_list()
+        num_of_sentences = len(list_of_sentences)
+        len_of_summary = math.ceil(num_of_sentences * 0.3)
+        # keywords = self.get_keywords()
+        summary = {}
+        for index, sentence in enumerate(list_of_sentences):
+            for word in keywords:
+                if word in sentence:
+                    if index not in summary:
+                        summary[index] = 1
+                    else:
+                        summary[index] += 1
+
+        summary = sorted(summary.items(), key=lambda item: item[1], reverse=True)
+
+        summary_final = [
+            list_of_sentences[index] for index, _ in summary[:len_of_summary]
+        ]
+
+        summary_text = " ".join(summary_final)
+
+        return summary_text
+
     def get_keywords(self):
         keywords = self.keyword_extraction_t_g_d()
         tags = {}
@@ -341,7 +368,8 @@ class UKSS_PI:
 
         sorted_tags = sorted(tags.items(), key=lambda item: item[1], reverse=True)
         words = [word for word, _ in sorted_tags[:3]]
-        return words
+        summary = self.__get_summary(keywords=words)
+        return {"keywords": words, "summary": summary}
 
     def get_keyword_list(self):
         keywords = self.keyword_extraction_t_g_d()
