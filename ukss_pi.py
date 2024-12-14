@@ -15,6 +15,8 @@ nltk.download("punkt")
 nltk.download("wordnet")
 nltk.download("omw-1.4")  # For additional word information
 nltk.download("averaged_perceptron_tagger")  # For POS tagging
+nltk.download("averaged_perceptron_tagger_eng")
+nltk.download("punkt_tab")
 from nltk.corpus import wordnet
 from nltk import pos_tag
 from concurrent.futures import ThreadPoolExecutor
