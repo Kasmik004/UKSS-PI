@@ -27,6 +27,13 @@
    pip install -r requirements.txt
    ```
 
+or, install as a Python Library
+
+   ```bash
+   pip install ukss
+   ```
+Guide to the Python Library: https://pypi.org/project/ukss/
+
 ## Usage
 
 1. Replace the text inside `test.py` with the text you want to analyze.
